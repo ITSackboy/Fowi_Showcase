@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>fowi showcase</title>
+<style>
+
+  :root{
+    --fowi-magenta:#e6007e;
+    --fowi-magenta-soft:#ff4fb0;
+    --fowi-grau:#414141;
+    --bg:#ffffff;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{
+    height:100%;
+    overflow:hidden;
+    background:var(--bg);
+    cursor:none;
+    font-family:"Segoe UI",Arial,sans-serif;
+  }
+
+  /*partikel canvas im hintergrund leicht verschwommen*/
+  #particles{
+    position:fixed;
+    inset:0;
+    z-index:1;
+    filter:blur(2px);
+  }
+
+  /*inhalt in der mitte*/
+  .center{
+    position:relative;
+    z-index:2;
+    height:100vh;
+    width:100vw;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+  }
+
+  .logo-img{
+    --scale:6;
+    width:calc(119px * var(--scale));
+    height:auto;
+    image-rendering:auto;
+    filter:drop-shadow(0 4px 24px rgba(230,0,126,.18));
+    animation:floaty 6s ease-in-out infinite;
+  }
+
+  /*nicht sicher bei dem*/
+  .claim{
+    margin-top:3vh;
+    font-size:1.9vw;
+    font-weight:400;
+    letter-spacing:.06em;
+    color:var(--fowi-grau);
+    user-select:none;
+    animation:floaty 6s ease-in-out infinite;
+  }
+
+
+  @keyframes floaty{
+    0%,100%{transform:translateY(0);}
+    50%{transform:translateY(-14px);}
+  }
+
+</style>
+</head>
+<body>
+
+  <canvas id="particles"></canvas>
+
+  <div class="center">
+    <img class="logo-img" src="logo.png" alt="fowi"
+         onerror="this.style.display='none';document.getElementById('fb').style.display='block';">
+
+         <div class="claim">Ihr Informatik-Dienstleister</div>
+
+  </div>
+
+  
+
+<script>
+
+/*partikel*/
+const canvas=document.getElementById('particles');
+const ctx=canvas.getContext('2d');
+let w,h,particles=[];
+
+function resize(){
+  w=canvas.width=window.innerWidth;
+  h=canvas.height=window.innerHeight;
+}
+window.addEventListener('resize',resize);
+resize();
+
+//zwei magenta farben für etwas tiefe
+const farben=['230,0,126','255,79,176'];
+
+//da werden die einzelnen partikel erstellt
+//das (w) ist die Bildschirmbreite, eine horizontale startposition 
+//dasselbe für (h) aber vertikal
+// r ist der radius und das 14 ist 0-14 plus 2 ist es 2-16, das 2 sorgt dafür das keine kugel unsichtbar klein wird
+// es sind ungefähr 60 partikeln am screen
+function mach(){
+  return {
+    x:Math.random()*w,
+    y:Math.random()*h,
+    r:2+Math.random()*14,          //grösse
+    dx:(Math.random()-0.5)*0.6,    //geschwindigkeit x
+    dy:(Math.random()-0.5)*0.6,    //geschwindigkeit y
+    a:0.15+Math.random()*0.4,      //transparenz
+    c:farben[Math.floor(Math.random()*farben.length)]
+  };
+}
+
+const ANZAHL=60;
+for(let i=0;i<ANZAHL;i++) particles.push(mach()); //schleife looppppp
+
+function frame(){
+  ctx.clearRect(0,0,w,h); //löscht als erstes den ganzen bildschirm 
+  for(const p of particles){ //wär die bewegung  | p.x +=p.dx ist neue x position = alte pos + geschwindigkeit 
+    p.x+=p.dx; p.y+=p.dy;
+    //sanft am rand umkehren
+    if(p.x< -20) p.x=w+20; // links raus > recht wieder rein oder umgekehrt 
+    if(p.x> w+20) p.x=-20;
+    if(p.y< -20) p.y=h+20;
+    if(p.y> h+20) p.y=-20;
+
+    ctx.beginPath(); 
+    ctx.arc(p.x,p.y,p.r,0,Math.PI*2); //macht ein kreis an der position der kugel mit dem radius p.r
+    ctx.fillStyle='rgba('+p.c+','+p.a+')'; //fillstyle wär die farbe
+    ctx.fill();
+  }
+  requestAnimationFrame(frame); //endlosschleife
+}
+frame();
+
+/*vollbild bei klick oder taste*/
+function vollbild(){
+  const el=document.documentElement;
+  if(el.requestFullscreen) el.requestFullscreen();
+}
+document.addEventListener('click',vollbild,{once:true});
+document.addEventListener('keydown',vollbild,{once:true});
+
+</script>
+</body>
+</html>
